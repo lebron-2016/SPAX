@@ -137,4 +137,5 @@ Our idea is built upon the following projects. We really appreciate their excell
 
 - [MP2Net (TGRS'24)](https://github.com/DonDominic/MP2Net#) [[related paper](https://ieeexplore.ieee.org/abstract/document/10493056)]
 - [Hieum (TPAMI'24)](https://github.com/ChaoXiao12/Moving-object-detection-in-satellite-videos-HiEUM) [[related paper](https://arxiv.org/html/2411.15895v1)]
+- [DeltaCNN (CVPR'22)](https://github.com/facebookresearch/DeltaCNN) [[related paper](https://openaccess.thecvf.com/content/CVPR2022/papers/Parger_DeltaCNN_End-to-End_CNN_Inference_of_Sparse_Frame_Differences_in_Videos_CVPR_2022_paper.pdf)]
 - [CenterNet (ICCV'19)](https://github.com/xingyizhou/CenterNet) [[related paper](https://arxiv.org/abs/1904.07850)]
