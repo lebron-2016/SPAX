@@ -37,6 +37,10 @@ python setup.py install
 
 - The SatMTB dataset is available in [BaiduYun](https://pan.baidu.com/s/1TBCnflx1M_Fk30xWcsDiqg?) with password **s5y7**, and the unzip password is **CSU@2023**.
 
+- Processed data that can be used directly.
+  1. ICPR: [BaiduYun](https://pan.baidu.com/s/1CE1UV-t7ltDhqeVuC6ZF4A) with password **c2qg**
+  2. SatMTB: [BaiduYun](https://pan.baidu.com/s/1Jgfu82yQ0X6pNPHL4jZenw) with password **q51x**
+
 ```
 -dataset
     |-ICPR
