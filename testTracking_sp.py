@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from collections import defaultdict
 
 from lib.models.stNet import get_det_net, load_model
-from lib.dataset.coco_icpr import COCO
+from lib.dataset.coco_icpr_sp import COCO
 
 from lib.external.nms import soft_nms
 
@@ -21,11 +21,12 @@ from lib.utils.decode import ctdet_decode
 from lib.utils.post_process import generic_post_process
 
 from lib.utils.sort import *
-from lib.tracking_utils.byte_tracker import BYTETracker
 
 from progress.bar import Bar
 import time
-import matplotlib.pyplot as plt
+from sparsecnn.sparse_layers import SPBackend, SPConv2d
+from lib.tracking_utils.byte_tracker import BYTETracker
+
 
 def show_mask(mask):
     import matplotlib.pyplot as plt
@@ -50,21 +51,24 @@ def show_arrow(det, dis, readname, writename):
     cv2.imwrite(writename, img)
     return
 
-def process(model, ratios, image, vid=None, idx=0):
+def process(model, ratios, image, image_for_motion, now_idx, vid=None, idx=0):
     with torch.no_grad():
         dets_all = {}
-        output_all = model(image, training=False, vid=vid)[-1]
+
+        output_all, mask = model(image, image_for_motion, now_idx, training=False, vid=vid, idx=idx)
+
         for ratio in ratios:
             output = output_all[ratio]
-            hm = output['hm'].sigmoid_()
-            wh = output['wh']
-            reg = output['reg']
-            dis = output['dis']
+            hm = (output['hm'].sigmoid_()) * mask
+            wh = (output['wh']) * mask
+            reg = (output['reg']) * mask
+            # dis = output['dis']
             torch.cuda.synchronize()
-            dets = ctdet_decode(hm, wh, reg=reg, tracking=dis, num_classes=opt.num_classes, K=opt.K)
+            dets = ctdet_decode(hm, wh, reg=reg, num_classes=opt.num_classes, K=opt.K)
             for k in dets:
                 dets[k] = dets[k].detach().cpu().numpy()
             dets_all[ratio] = dets
+
     return dets_all
 
 def post_process(ratios, dets_all, meta, scale=1):
@@ -128,8 +132,9 @@ def test(opt, split, modelPath, show_flag, results_name):
     data_loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
     model = get_det_net({'hm': dataset.num_classes, 'wh': 2, 'reg': 2, 'dis': 2}, opt.model_name)
     model = load_model(model, modelPath)
-    model = model.cuda()
     model.eval()
+    model = model.to(device, memory_format=torch.channels_last) 
+    model.process_filters()
 
     # some useful initialization
     num_classes = dataset.num_classes
@@ -156,38 +161,38 @@ def test(opt, split, modelPath, show_flag, results_name):
         )
 
         # read images
-        file_folder_cur = pre_processed_images['file_name'][0].split('_')[0]      # ICPR
+        file_folder_cur = pre_processed_images['file_name'][0].split('_')[0] # ICPR
         meta = pre_process(pre_processed_images['input'], scale=1)
-        image = pre_processed_images['input'].cuda()
+        image = pre_processed_images['input']
+        image_use = image.to(device)
 
-        params = sum(p.numel() for p in model.parameters())
-        # print(' Number of params: %.2fM' % (params / 1e6))
-
-        # cur image detection
-        dets_all = process(model, ratios, image, vid=file_folder_cur+'_'+str(im_count), idx=ind+1)
-        dets_all_post = post_process(ratios, dets_all, meta)
-        ret = merge_outputs(ratios, dets_all_post, num_classes)
-        
-        # update tracker
-        for i in range(1, num_classes + 1):
-            dets_track[i] = merge_tracks(ret[i])
-        
         if file_folder_cur != file_folder_pre:
             trackingflag = 'on'
             if saveTxt and file_folder_pre != 'INIT':
                 fid.close()
             file_folder_pre = file_folder_cur
-            car_tracker = BYTETracker(opt)    # 1
+            car_tracker = BYTETracker(opt) # 1
             if saveTxt:
                 # load model
                 model = get_det_net({'hm': dataset.num_classes, 'wh': 2, 'reg': 2, 'dis': 2}, opt.model_name)
                 model = load_model(model, modelPath)
-                model = model.cuda()
                 model.eval()
+                model = model.to(device, memory_format=torch.channels_last) 
+                model.process_filters()
+            
                 im_count = 0
                 txt_path = os.path.join(track_results_save_dir, file_folder_cur+'.txt')
                 fid = open(txt_path, 'w+')
 
+        # cur image detection
+        dets_all = process(model, ratios, image_use, pre_processed_images['motion_list'].to(device), pre_processed_images['now_idx'].to(device), vid=file_folder_cur+'_'+str(im_count), idx=ind+1)
+
+        dets_all_post = post_process(ratios, dets_all, meta)
+        ret = merge_outputs(ratios, dets_all_post, num_classes)
+        # update tracker
+        for i in range(1, num_classes + 1):
+            dets_track[i] = merge_tracks(ret[i])
+        
         if trackingflag != 'off':
 
             for i in range(1, num_classes + 1):
@@ -205,12 +210,13 @@ def test(opt, split, modelPath, show_flag, results_name):
     bar.finish()
 
 if __name__ == '__main__':
+
+    device = "cuda:0"
+
+    SPConv2d.backend = SPBackend.sparsecnn
+
     split = 'val'
     show_flag = False
-
-    # torch.backends.cuda.matmul.allow_tf32 = False
-    # torch.backends.cudnn.allow_tf32 = False
-
     if (not os.path.exists(opt.save_results_dir)):
         os.mkdir(opt.save_results_dir)
 

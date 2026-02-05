@@ -27,7 +27,7 @@ Sequences of ground truth and test will be matched according to the `<SEQUENCE_X
 string.""", formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument('--result', type=str, help='Results folder path', default='')
-    parser.add_argument('--cate', type=str, help='choose cate from airplane, car, ship and train', default='car') # class
+    parser.add_argument('--cate', type=str, help='choose cate from airplane, car, ship and train', default='ship') # class
     parser.add_argument('--loglevel', type=str, help='Log level', default='info')
     parser.add_argument('--fmt', type=str, help='Data format', default='mtb-sat')
     parser.add_argument('--solver', type=str, help='LAP solver to use')
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     if args.solver:
         mm.lap.default_solver = args.solver
 
-    gtfiles = glob.glob(os.path.join('....../dataset/SatMTB/test/label', args.cate, '*.txt')) # gt path
+    gtfiles = glob.glob(os.path.join('./dataset/SatMTB/test/label', args.cate, '*.txt')) # gt path
     tsfiles = [f for f in glob.glob(os.path.join(args.result, args.cate, '*.txt'))]
 
     logging.info('Found {} groundtruths and {} test files.'.format(len(gtfiles), len(tsfiles)))

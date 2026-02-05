@@ -6,12 +6,22 @@ import torch
 from thop import profile
 
 from lib.models.dla_fpn_dcn_iter_update import dla_fpn_net_iter_update
+from lib.models.dla_fpn_dcn_iter_update_sp import dla_fpn_net_iter_update_sp
 from lib.models.dla_fpn_dcn_iter_update_for_satmtb import dla_fpn_net_iter_update_for_satmtb
+from lib.models.dla_fpn_dcn_iter_update_for_satmtb_sp import dla_fpn_net_iter_update_for_satmtb_sp
+
+from lib.models.dla_fpn_dcn_iter_update_light import dla_fpn_net_iter_update_light
+from lib.models.dla_fpn_dcn_iter_update_for_satmtb_light import dla_fpn_net_iter_update_for_satmtb_light
 
 def model_lib(model_chose):
     model_factory = {
                      'DLAIterUpdate': dla_fpn_net_iter_update,
+                     'DLAIterUpdate_sp': dla_fpn_net_iter_update_sp,
                      'DLAIterUpdate_for_satmtb': dla_fpn_net_iter_update_for_satmtb,
+                     'DLAIterUpdate_for_satmtb_sp': dla_fpn_net_iter_update_for_satmtb_sp,
+
+                     'DLAIterUpdate_light': dla_fpn_net_iter_update_light,
+                     'DLAIterUpdate_for_satmtb_light': dla_fpn_net_iter_update_for_satmtb_light,
                      }
     return model_factory[model_chose]
 

@@ -8,6 +8,10 @@ The official code of SPAX: Fully Sparse Framework with Hierarchical Spatio-tempo
 
 Moving object tracking is a fundamental task in video satellite technologies. Existing methods typically introduce considerable unnecessary computational overhead of redundant background regions in spatial dimension and struggle to tackle the temporal challenges posed by the coupled motion of the satellite platform and ground objects. To address these issues, we propose a fully sparse framework with hierarchical spatio-temporal fusion (SPAX). Specifically, SPAX utilizes an object-centric fully-sparse paradigm to reduce computational redundancy by focusing only on foreground regions. Furthermore, we adopt the hierarchical spatio-temporal fusion (HSF) to address the complexity of dual-motion coupling through intra-frame multi-scale feature fusion, inter-frame symmetric feature interaction, and inter-frame asymmetric feature interaction, thereby enabling comprehensive temporal information utilization. Additionally, we propose a plug-and-play Gaussian-based trajectory association (GTA) strategy to mitigate the negative impact of observational drifts and accumulated errors. Experiments show that SPAX outperforms previous methods on two popular benchmarks, achieving notable improvements of $\mathbf{5.1}$ and $\mathbf{7.6}$ on MOTA. While achieving the state-of-the-art (SOTA) performance, SPAX-Base reduces GFLOPs by $\mathbf{88.4\%}$ and delivers a $\mathbf{2.7\times}$ speedup on SatVideoDT dataset, along with $\mathbf{93.2\%}$ GFLOPs reduction and up to a $\mathbf{3.1\times}$ acceleration on SatMTB-MOT dataset compared to our baseline. Furthermore, SPAX-Light outperforms the previous SOTA method by $\mathbf{6.6}$ MOTA and runs at $\mathbf{5.9\times}$ its inference speed on SatMTB-MOT dataset.
 
+## Release
+
+Trained models on ICPR and SatMTB datasets [[model weights](https://pan.baidu.com/s/1fDzTLXZZ7OMYjoYLuP676w?pwd=asd7)].
+
 ## Getting Started
 
 ### Environment
@@ -107,18 +111,29 @@ CUDA_VISIBLE_DEVICES=<GPU_ID0, GPU_ID1 > python train_satmtb.py --model_name DLA
 
 ### Testing
 
-#### Testing for SatVideoDT.
+#### Testing for SatVideoDT (dense).
 
 ```shell
 CUDA_VISIBLE_DEVICES=<GPU_ID> python testTracking.py --model_name DLAIterUpdate --gpus 0 --load_model <model weights> --datasetname ICPR --data_dir ./dataset/ICPR/ --seqLen <sequence length>
 ```
 
-#### Testing for SatMTB.
+#### Testing for SatVideoDT (sparse).
+
+```shell
+CUDA_VISIBLE_DEVICES=<GPU_ID> python testTracking_sp.py --model_name DLAIterUpdate_sp --gpus 0 --load_model <model weights> --datasetname ICPR --data_dir ./dataset/ICPR/ --seqLen <sequence length>
+```
+
+#### Testing for SatMTB (dense).
 
 ```shell
 CUDA_VISIBLE_DEVICES=<GPU_ID> python testTracking_satmtb.py --model_name DLAIterUpdate_for_satmtb --gpus 0 --load_model <model weights> --datasetname SatMTB --data_dir ./dataset/SatMTB/ --seqLen <sequence length> --num_classes 3
 ```
 
+#### Testing for SatMTB (sparse).
+
+```shell
+CUDA_VISIBLE_DEVICES=<GPU_ID> python testTracking_satmtb_sp.py --model_name DLAIterUpdate_for_satmtb_sp --gpus 0 --load_model <model weights> --datasetname SatMTB --data_dir ./dataset/SatMTB/ --seqLen <sequence length> --num_classes 3
+```
 
 ### Evaluation
 

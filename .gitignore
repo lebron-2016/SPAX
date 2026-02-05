@@ -1,4 +1,7 @@
 record.txt
+weights
+ICPR
+SatMTB
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
